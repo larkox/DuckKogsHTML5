@@ -1,0 +1,3 @@
+constants = {
+    "SQUAREDIM": 80,
+}

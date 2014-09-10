@@ -1,0 +1,171 @@
+{
+    "width": 5,
+    "height": 5,
+    "textures": ["images/texture1.png", "images/texture2.png"],
+    "enemies": [
+        { "id": 2, "pos": { "x": 0, "y": 0 } }
+    ],
+    "init_pos": {"x": 2, "y": 2},
+    "cells": [
+        [
+            {
+                "up": 0,
+                "down": 1,
+                "left": 0,
+                "right": 1
+            },
+            {
+                "up": 0,
+                "down": 1,
+                "left": 1,
+                "right": 0
+            },
+            {
+                "up": 0,
+                "down": 1,
+                "left": 0,
+                "right": 1
+            },
+            {
+                "up": 0,
+                "down": 1,
+                "left": 1,
+                "right": 0
+            },
+            {
+                "up": 1,
+                "down": 1,
+                "left": 0,
+                "right": 0
+            }
+        ],
+        [
+            {
+                "up": 1,
+                "down": 1,
+                "left": 0,
+                "right": 0
+            },
+            {
+                "up": 1,
+                "down": 1,
+                "left": 0,
+                "right": 0
+            },
+            {
+                "up": 1,
+                "down": 1,
+                "left": 0,
+                "right": 0
+            },
+            {
+                "up": 1,
+                "down": 1,
+                "left": 0,
+                "right": 0
+            },
+            {
+                "up": 1,
+                "down": 1,
+                "left": 0,
+                "right": 0
+            }
+        ],
+        [
+            {
+                "up": 1,
+                "down": 1,
+                "left": 0,
+                "right": 0
+            },
+            {
+                "up": 1,
+                "down": 1,
+                "left": 0,
+                "right": 0
+            },
+            {
+                "up": 1,
+                "down": 1,
+                "left": 0,
+                "right": 0
+            },
+            {
+                "up": 1,
+                "down": 1,
+                "left": 0,
+                "right": 0
+            },
+            {
+                "up": 1,
+                "down": 1,
+                "left": 0,
+                "right": 0
+            }
+        ],
+        [
+            {
+                "up": 1,
+                "down": 1,
+                "left": 0,
+                "right": 0
+            },
+            {
+                "up": 1,
+                "down": 0,
+                "left": 0,
+                "right": 1
+            },
+            {
+                "up": 1,
+                "down": 0,
+                "left": 1,
+                "right": 0
+            },
+            {
+                "up": 1,
+                "down": 1,
+                "left": 0,
+                "right": 0
+            },
+            {
+                "up": 1,
+                "down": 1,
+                "left": 0,
+                "right": 0
+            }
+        ],
+        [
+            {
+                "up": 1,
+                "down": 0,
+                "left": 1,
+                "right": 1
+            },
+            {
+                "up": 0,
+                "down": 0,
+                "left": 1,
+                "right": 1
+            },
+            {
+                "up": 0,
+                "down": 0,
+                "left": 1,
+                "right": 1
+            },
+            {
+                "up": 1,
+                "down": 0,
+                "left": 1,
+                "right": 1
+            },
+            {
+                "up": 1,
+                "down": 1,
+                "left": 1,
+                "right": 1
+            }
+        ]
+    ]
+}
