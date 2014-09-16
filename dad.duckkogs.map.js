@@ -18,6 +18,7 @@ function loadMapResources(result, responseText) {
     ready_resources = {"n":0};
     game_map.textures_images = [];
     game_map.enemies_images = [];
+    game_map.objects_images = [];
     for (var resource = 0; resource < game_map.textures.length; resource++) {
         game_map.textures_images[resource] = new Image();
         game_map.textures_images[resource].onload = function () {
@@ -57,9 +58,15 @@ function loadMapResources(result, responseText) {
     }
     game_map.background.right.src = "images/rightPanel.png";
 
+    game_map.objects_images[0] = new Image();
+    game_map.objects_images[0].onload = function() {
+        ready_resources.n += 1;
+    }
+    game_map.objects_images[0].src = "images/kog.png";
+
     game_map.needed_resources =
         game_map.textures.length +
-        game_map.used_enemies.length + 1 + 3;
+        game_map.used_enemies.length + 1 + 3 + 1;
     checkTextures(result, game_map, ready_resources);
 }
 

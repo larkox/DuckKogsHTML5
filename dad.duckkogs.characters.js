@@ -7,75 +7,81 @@ function initPlayer(map) {
     player.texture = map.player;
     player.moving = false;
     player.movement_state = 0;
-    player.draw = function (environment, state) {
-        if (!movingThroughBorders(player, state.map)) {
-            var draw_pos = calculateDrawPosition(player, state.map.dim);
-            environment.layers[1].drawImage(player.texture,
-                    player.state * constants.SQUAREDIM,
-                    player.direction * constants.SQUAREDIM,
-                    constants.SQUAREDIM, constants.SQUAREDIM,
-                    state.map_pos.x + draw_pos.x * constants.SQUAREDIM,
-                    state.map_pos.y + draw_pos.y * constants.SQUAREDIM,
-                    constants.SQUAREDIM, constants.SQUAREDIM);
-        }
-        else {
-            drawThroughBorder(player, environment, state);
-        }
-    }
+    player.draw = drawSprite;
     player.animate = function (environment, state) {
-        player.frame_count += 1;
-        if (player.moving) {
-            if ((player.frame_count % 2) == 0) {
-                player.movement_state += 1 / 8;
-                if (player.movement_state >= 1) {
-                    player.moving = false;
-                    player.movement_state = 0;
+        this.frame_count += 1;
+        if (this.moving) {
+            if ((this.frame_count % 2) == 0) {
+                this.movement_state += 1 / 8;
+                if (this.movement_state >= 1) {
+                    this.moving = false;
+                    this.movement_state = 0;
+                    if (state.kogs[this.pos.y][this.pos.x]) {
+                        state.kogs[this.pos.y][this.pos.x] = null;
+                        state.remaining_kogs -= 1;
+                    }
                 }
             }
-            if ((player.frame_count % 5) == 0) {
-                player.state = (player.state + 1) % 2;
+            if ((this.frame_count % 5) == 0) {
+                this.state = (this.state + 1) % 2;
             }
         }
         else {
-            if ((player.frame_count % 10) == 0) {
-                player.state = (player.state + 1) % 2;
+            if ((this.frame_count % 10) == 0) {
+                this.state = (this.state + 1) % 2;
             }
             var current_pos;
             if (environment.is_pressed[constants.KEY_UP]) {
-                current_pos = state.player.pos;
+                current_pos = this.pos;
                 if (state.map.cells[current_pos.y][current_pos.x].up) {
-                    state.player.pos.y = (state.player.pos.y - 1 + state.map.height) % state.map.height;
-                    state.player.moving = true;
+                    this.pos.y = (this.pos.y - 1 + state.map.height) % state.map.height;
+                    this.moving = true;
                 }
-                state.player.direction = constants.UP;
+                this.direction = constants.UP;
             }
             else if (environment.is_pressed[constants.KEY_DOWN]) {
-                current_pos = state.player.pos;
+                current_pos = this.pos;
                 if (state.map.cells[current_pos.y][current_pos.x].down) {
-                    state.player.pos.y = (state.player.pos.y + 1 + state.map.height) % state.map.height;
-                    state.player.moving = constants.DOWN;
+                    this.pos.y = (this.pos.y + 1 + state.map.height) % state.map.height;
+                    this.moving = constants.DOWN;
                 }
-                state.player.direction = 2;
+                this.direction = 2;
             }
             else if (environment.is_pressed[constants.KEY_LEFT]) {
-                current_pos = state.player.pos;
+                current_pos = this.pos;
                 if (state.map.cells[current_pos.y][current_pos.x].left) {
-                    state.player.pos.x = (state.player.pos.x - 1 + state.map.width) % state.map.width;
-                    state.player.moving = true;
+                    this.pos.x = (this.pos.x - 1 + state.map.width) % state.map.width;
+                    this.moving = true;
                 }
-                state.player.direction = constants.LEFT;
+                this.direction = constants.LEFT;
             }
             else if (environment.is_pressed[constants.KEY_RIGHT]) {
-                current_pos = state.player.pos;
+                current_pos = this.pos;
                 if (state.map.cells[current_pos.y][current_pos.x].right) {
-                    state.player.pos.x = (state.player.pos.x + 1 + state.map.width) % state.map.width;
-                    state.player.moving = true;
+                    this.pos.x = (this.pos.x + 1 + state.map.width) % state.map.width;
+                    this.moving = true;
                 }
-                state.player.direction = constants.RIGHT;
+                this.direction = constants.RIGHT;
             }
         }
     }
     return player;
+}
+
+function drawSprite(environment, state) {
+    if (!movingThroughBorders(this, state.map)) {
+        var draw_pos = calculateDrawPosition(this, state.map.dim);
+        environment.layers[1].drawImage(this.texture,
+                this.state * constants.SQUAREDIM,
+                this.direction * constants.SQUAREDIM,
+                constants.SQUAREDIM, constants.SQUAREDIM,
+                state.map_pos.x + draw_pos.x * constants.SQUAREDIM,
+                state.map_pos.y + draw_pos.y * constants.SQUAREDIM,
+                constants.SQUAREDIM, constants.SQUAREDIM);
+    }
+    else {
+        drawThroughBorder(this, environment, state);
+    }
 }
 
 function calculateDrawPosition(sprite) {
@@ -194,14 +200,12 @@ function initEnemies(map) {
         enemy.direction = 0;
         enemy.state = 0;
         enemy.frame_count = 0;
+        enemy.movement_state = 0;
+        enemy.moving = false;
         enemy.pos = map.enemies[index].pos;
         enemy.animate = assignAction(map.enemies[index].id);
         enemy.texture = map.enemies_images[map.used_enemies.indexOf(map.enemies[index].id)];
-        enemy.draw = function (environment, state) {
-            environment.layers[1].drawImage(enemy.texture,
-                    state.map_pos.x + enemy.pos.x * constants.SQUAREDIM,
-                    state.map_pos.y + enemy.pos.y * constants.SQUAREDIM);
-        }
+        enemy.draw = drawSprite;
         enemy_list[index] = enemy;
     }
     return enemy_list;
@@ -228,4 +232,143 @@ function angryAction(state) {
 }
 
 function fastAction(state) {
+    this.frame_count += 1;
+    if (this.moving) {
+        if (this.running) {
+            this.movement_state += 1 / 8;
+        }
+        else if ((this.frame_count % 2) == 0) {
+            this.movement_state += 1 / 8;
+        }
+        if (this.movement_state >= 1) {
+            this.moving = false;
+            this.running = false;
+            this.movement_state = 0;
+        }
+        //if ((this.frame_count % 5) == 0) {
+        //    this.state = (this.state + 1) % 2;
+        //}
+    }
+    else {
+        //if ((this.frame_count % 10) == 0) {
+        //    this.state = (this.state + 1) % 2;
+        //}
+        if (this.pos.x == state.player.pos.x) {
+            var up = checkLine(this.pos.y, state.player.pos.y, this.pos.x, state.map, constants.UP);
+            var down = checkLine(this.pos.y, state.player.pos.y, this.pos.x, state.map, constants.DOWN);
+            if ((up && down && up < down) || (up && !down)) {
+                this.pos.y = (this.pos.y - 1 + state.map.height) % state.map.height;
+                this.moving = true;
+                this.running = true;
+                this.direction = constants.UP;
+            }
+            else if (down) {
+                this.pos.y = (this.pos.y + 1) % state.map.height;
+                this.moving = true;
+                this.running = true;
+                this.direction = constants.DOWN;
+            }
+        }
+        else if (this.pos.y == state.player.pos.y) {
+            var left = checkLine(this.pos.x, state.player.pos.x, state.player.pos.y, state.map, constants.LEFT);
+            var right = checkLine(this.pos.x, state.player.pos.x, state.player.pos.y, state.map, constants.RIGHT);
+            if ((left && right && left < right) || (left && !right)) {
+                this.pos.x = (this.pos.x - 1 + state.map.width) % state.map.width;
+                this.moving = true;
+                this.running = true;
+                this.direction = constants.LEFT;
+            }
+            else if (right) {
+                this.pos.x = (this.pos.x + 1) % state.map.width;
+                this.moving = true;
+                this.running = true;
+                this.direction = constants.RIGHT;
+            }
+        }
+        if (!this.moving && (this.frame_count % 10 == 0) && Math.random() > 0.8) {
+            moveRandom(this, state.map);
+        }
+    }
+}
+
+function moveRandom(sprite, map) {
+    var direction = Math.floor(Math.random() * 4);
+    var new_pos;
+    switch (direction) {
+        case constants.UP:
+            new_pos = (sprite.pos.y - 1 + map.height) % map.height;
+            if (map.cells[sprite.pos.y][sprite.pos.x].up && !map.cells[new_pos][sprite.pos.x].occupied) {
+                sprite.pos.y = new_pos;
+                sprite.moving = true;
+                sprite.direction = constants.UP;
+            }
+            break;
+        case constants.DOWN:
+            new_pos = (sprite.pos.y + 1) % map.height;
+            if (map.cells[sprite.pos.y][sprite.pos.x].down && !map.cells[new_pos][sprite.pos.x].occupied) {
+                sprite.pos.y = new_pos;
+                sprite.moving = true;
+                sprite.direction = constants.DOWN;
+            }
+            break;
+        case constants.LEFT:
+            new_pos = (sprite.pos.x - 1 + map.width) % map.width;
+            if (map.cells[sprite.pos.y][sprite.pos.x].left && !map.cells[sprite.pos.y][new_pos].occupied) {
+                sprite.pos.x = new_pos;
+                sprite.moving = true;
+                sprite.direction = constants.LEFT;
+            }
+            break;
+        case constants.RIGHT:
+            new_pos = (sprite.pos.x + 1) % map.width;
+            if (map.cells[sprite.pos.y][sprite.pos.x].right && !map.cells[sprite.pos.y][new_pos].occupied) {
+                sprite.pos.x = new_pos;
+                sprite.moving = true;
+                sprite.direction = constants.RIGHT;
+            }
+            break;
+    }
+}
+
+function checkLine(pos_ini, pos_end, line, map, direction) {
+    var acum = 0;
+    var current_pos = pos_ini;
+    switch (direction) {
+        case constants.UP:
+            while(map.cells[current_pos][line].up) {
+                current_pos = (current_pos - 1 + map.height) % map.height;
+                acum += 1;
+                if (pos_end == current_pos) {
+                    return acum;
+                }
+            }
+            break;
+        case constants.DOWN:
+            while(map.cells[current_pos][line].down) {
+                current_pos = (current_pos + 1) % map.height;
+                acum += 1;
+                if (pos_end == current_pos) {
+                    return acum;
+                }
+            }
+            break;
+        case constants.LEFT:
+            while(map.cells[line][current_pos].left) {
+                current_pos = (current_pos - 1 + map.width) % map.width;
+                acum += 1;
+                if (pos_end == current_pos) {
+                    return acum;
+                }
+            }
+            break;
+        case constants.RIGHT:
+            while(map.cells[line][current_pos].right) {
+                current_pos = (current_pos + 1) % map.width;
+                acum += 1;
+                if (pos_end == current_pos) {
+                    return acum;
+                }
+            }
+            break;
+    }
 }
