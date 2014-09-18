@@ -204,7 +204,7 @@ function initEnemies(map) {
         enemy.moving = false;
         enemy.pos = map.enemies[index].pos;
         enemy.animate = assignAction(map.enemies[index].id);
-        enemy.texture = map.enemies_images[map.used_enemies.indexOf(map.enemies[index].id)];
+        enemy.texture = map.enemies_images[map.enemies[index].id];
         enemy.draw = drawSprite;
         enemy_list[index] = enemy;
     }
@@ -226,10 +226,132 @@ function assignAction(id) {
 }
 
 function bomberAction(state) {
+    this.frame_count += 1;
+    if (this.moving) {
+        if ((this.frame_count % 2) == 0) {
+            this.movement_state += 1 / 8;
+        }
+        if (this.movement_state >= 1) {
+            this.moving = false;
+            this.movement_state = 0;
+        }
+        //if ((this.frame_count % 5) == 0) {
+        //    this.state = (this.state + 1) % 2;
+        //}
+    }
+    else {
+        if ((this.frame_count % 25) == 0 && Math.random() > 0.8) {
+            moveRandom(this, state.map);
+        }
+        if ((this.frame_count % 50) == 0 && Math.random() > 0.5) {
+            state.objects.push(initBomb(state.map, this.pos));
+        }
+    }
 }
 
 function angryAction(state) {
+    this.frame_count += 1;
+    if (this.moving) {
+        if ((this.frame_count % 2) == 0) {
+            this.movement_state += 1 / 8;
+        }
+        if (this.movement_state >= 1) {
+            this.moving = false;
+            this.movement_state = 0;
+        }
+        //if ((this.frame_count % 5) == 0) {
+        //    this.state = (this.state + 1) % 2;
+        //}
+    }
+    else {
+        var potential_map = potentialMap(state);
+        var min = state.map.height * state.map.width + 1;
+        var final_pos = this.pos;
+        var direction = constants.UP;
+        if (state.map.cells[this.pos.y][this.pos.x].up) {
+            var new_pos = (this.pos.y - 1 + state.map.height) % state.map.height;
+            if (potential_map[new_pos][this.pos.x] < min) {
+                min = potential_map[new_pos][this.pos.x];
+                final_pos = {"x": this.pos.x, "y": new_pos};
+                direction = constants.UP;
+            }
+        }
+        if (state.map.cells[this.pos.y][this.pos.x].down) {
+            var new_pos = (this.pos.y + 1) % state.map.height;
+            if (potential_map[new_pos][this.pos.x] < min) {
+                min = potential_map[new_pos][this.pos.x];
+                final_pos = {"x": this.pos.x, "y": new_pos};
+                direction = constants.DOWN;
+            }
+        }
+        if (state.map.cells[this.pos.y][this.pos.x].left) {
+            var new_pos = (this.pos.x - 1 + state.map.width) % state.map.width;
+            if (potential_map[this.pos.y][new_pos] < min) {
+                min = potential_map[this.pos.y][new_pos];
+                final_pos = {"x": new_pos, "y": this.pos.y};
+                direction = constants.LEFT;
+            }
+        }
+        if (state.map.cells[this.pos.y][this.pos.x].right) {
+            var new_pos = (this.pos.x + 1) % state.map.width;
+            if (potential_map[this.pos.y][new_pos] < min) {
+                min = potential_map[this.pos.y][new_pos];
+                final_pos = {"x": new_pos, "y": this.pos.y};
+                direction = constants.RIGHT;
+            }
+        }
+        this.pos = final_pos;
+        this.moving = true;
+        this.direction = direction;
+    }
 }
+
+function potentialMap(state) {
+    var potential_map = [];
+    for (var row = 0; row < state.map.height; row ++) {
+        potential_map[row] = [];
+        for (var col = 0; col < state.map.width; col++) {
+            potential_map[row][col] = state.map.height * state.map.width + 1;
+        }
+    }
+    var remaining = [state.player.pos];
+    potential_map[state.player.pos.y][state.player.pos.x] = 0;
+    while (remaining.length !== 0) {
+        var current = remaining.pop();
+        var value = potential_map[current.y][current.x] + 1;
+        if (state.map.cells[current.y][current.x].up) {
+            var new_pos = (current.y - 1 + state.map.height) % state.map.height;
+            if (potential_map[new_pos][current.x] > value) {
+                potential_map[new_pos][current.x] = value;
+                remaining.push({"x": current.x, "y": new_pos});
+            }
+        }
+        if (state.map.cells[current.y][current.x].down) {
+            var new_pos = (current.y + 1) % state.map.height;
+            if (potential_map[new_pos][current.x] > value) {
+                potential_map[new_pos][current.x] = value;
+                remaining.push({"x": current.x, "y": new_pos});
+            }
+        }
+        if (state.map.cells[current.y][current.x].left) {
+            var new_pos = (current.x - 1 + state.map.width) % state.map.width;
+            if (potential_map[current.y][new_pos] > value) {
+                potential_map[current.y][new_pos] = value;
+                remaining.push({"x": new_pos, "y": current.y});
+            }
+        }
+        if (state.map.cells[current.y][current.x].right) {
+            var new_pos = (current.x + 1) % state.map.width;
+            if (potential_map[current.y][new_pos] > value) {
+                potential_map[current.y][new_pos] = value;
+                remaining.push({"x": new_pos, "y": current.y});
+            }
+        }
+    }
+    return potential_map;
+}
+
+
 
 function fastAction(state) {
     this.frame_count += 1;

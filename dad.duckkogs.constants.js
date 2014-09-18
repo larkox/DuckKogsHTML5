@@ -13,4 +13,8 @@ constants = {
     "RIGHT": 1,
     "DOWN": 2,
     "LEFT": 3,
+
+    "KOG_ID": 0,
+    "BOMB_ID": 1,
+    "EXPLOSION_ID": 2,
 }

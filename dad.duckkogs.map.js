@@ -17,8 +17,8 @@ function loadMapResources(result, responseText) {
     game_map = JSON.parse(responseText);
     ready_resources = {"n":0};
     game_map.textures_images = [];
-    game_map.enemies_images = [];
-    game_map.objects_images = [];
+    game_map.enemies_images = {};
+    game_map.objects_images = {};
     for (var resource = 0; resource < game_map.textures.length; resource++) {
         game_map.textures_images[resource] = new Image();
         game_map.textures_images[resource].onload = function () {
@@ -27,11 +27,11 @@ function loadMapResources(result, responseText) {
         game_map.textures_images[resource].src = game_map.textures[resource];
     }
     for (var resource = 0; resource < game_map.used_enemies.length; resource++) {
-        game_map.enemies_images[resource] = new Image();
-        game_map.enemies_images[resource].onload = function () {
+        game_map.enemies_images[game_map.used_enemies[resource]] = new Image();
+        game_map.enemies_images[game_map.used_enemies[resource]].onload = function () {
             ready_resources.n += 1;
         }
-        game_map.enemies_images[resource].src = "images/enemy" + game_map.used_enemies[resource] + ".png";
+        game_map.enemies_images[game_map.used_enemies[resource]].src = "images/enemy" + game_map.used_enemies[resource] + ".png";
     }
     game_map.player = new Image();
     game_map.player.onload = function () {
@@ -58,15 +58,27 @@ function loadMapResources(result, responseText) {
     }
     game_map.background.right.src = "images/rightPanel.png";
 
-    game_map.objects_images[0] = new Image();
-    game_map.objects_images[0].onload = function() {
+    game_map.objects_images[constants.KOG_ID] = new Image();
+    game_map.objects_images[constants.KOG_ID].onload = function() {
         ready_resources.n += 1;
     }
-    game_map.objects_images[0].src = "images/kog.png";
+    game_map.objects_images[constants.KOG_ID].src = "images/kog.png";
+
+    game_map.objects_images[constants.BOMB_ID] = new Image();
+    game_map.objects_images[constants.BOMB_ID].onload = function() {
+        ready_resources.n += 1;
+    }
+    game_map.objects_images[constants.BOMB_ID].src = "images/bomb.png";
+
+    game_map.objects_images[constants.EXPLOSION_ID] = new Image();
+    game_map.objects_images[constants.EXPLOSION_ID].onload = function() {
+        ready_resources.n += 1;
+    }
+    game_map.objects_images[constants.EXPLOSION_ID].src = "images/explosion.png";
 
     game_map.needed_resources =
         game_map.textures.length +
-        game_map.used_enemies.length + 1 + 3 + 1;
+        game_map.used_enemies.length + 1 + 3 + 3;
     checkTextures(result, game_map, ready_resources);
 }
 

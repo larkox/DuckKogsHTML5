@@ -21,6 +21,8 @@ function waitForMap(environment, game_state) {
         game_state.player = initPlayer(game_state.map);
         game_state.enemies = initEnemies(game_state.map);
         game_state.kogs = initKogs(game_state.map);
+        game_state.objects = [];
+        game_state.damages = [];
         game_state.using_image = 0;
         game_state.frame = 0;
         game_state.remaining_kogs = game_state.map.total_kogs;
@@ -56,6 +58,14 @@ function animateGameLoop(environment, state) {
             }
         }
     }
+    var adjust = 0;
+    for (var index = 0; index < state.objects.length; index ++) {
+        adjust += state.objects[index - adjust].animate(state);
+    }
+    adjust = 0;
+    for (var index = 0; index < state.damages.length; index ++) {
+        adjust += state.damages[index - adjust].animate(state);
+    }
     for (var index = 0; index < state.enemies.length; index ++) {
         state.enemies[index].animate(state);
     }
@@ -74,10 +84,16 @@ function drawGameLoop(environment, state) {
             }
         }
     }
+    for (var index = 0; index < state.objects.length; index++) {
+        state.objects[index].draw(environment, state);
+    }
     for (var index = 0; index < state.enemies.length; index++) {
         state.enemies[index].draw(environment, state);
     }
     state.player.draw(environment, state);
+    for (var index = 0; index < state.damages.length; index++) {
+        state.damages[index].draw(environment, state);
+    }
 }
 
 function onKeyDownGameLoop(e, environment) {
