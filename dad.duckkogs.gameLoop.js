@@ -1,4 +1,9 @@
 function initGameLoop(environment, game_state, map_file) {
+    environment.layers[0].clearRect(0,0,environment.width,environment.height);
+    environment.layers[1].clearRect(0,0,environment.width,environment.height);
+    environment.layers[2].clearRect(0,0,environment.width,environment.height);
+    environment.animate = function() {};
+    environment.draw = function() {};
     if (game_state !== {}) {
         //Recupera puntuacion, vidas, etc
     }
@@ -41,9 +46,9 @@ function waitForMap(environment, game_state) {
         document.onkeyup = function(e) {
             onKeyUpGameLoop(e, environment);
         }
-        setTimeout(function () {
-            tick(environment, game_state);
-        }, 100);
+        //setTimeout(function () {
+        //    tick(environment, game_state);
+        //}, 100);
     }
 }
 
@@ -60,16 +65,24 @@ function animateGameLoop(environment, state) {
     }
     var adjust = 0;
     for (var index = 0; index < state.objects.length; index ++) {
-        adjust += state.objects[index - adjust].animate(state);
+        adjust += state.objects[index - adjust].animate(environment, state);
     }
     adjust = 0;
     for (var index = 0; index < state.damages.length; index ++) {
-        adjust += state.damages[index - adjust].animate(state);
+        adjust += state.damages[index - adjust].animate(environment, state);
     }
     for (var index = 0; index < state.enemies.length; index ++) {
-        state.enemies[index].animate(state);
+        state.enemies[index].animate(environment, state);
     }
     state.player.animate(environment, state);
+    if (!state.player.alive) {
+        initGameOverLoop(environment, state);
+    }
+}
+
+function initGameOverLoop(environment, state) {
+    environment.animate = function(){};
+    environment.draw = function(){};
 }
 
 function drawGameLoop(environment, state) {

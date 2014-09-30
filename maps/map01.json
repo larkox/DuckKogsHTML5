@@ -3,9 +3,9 @@
     "height": 5,
     "textures": ["images/texture1.png", "images/texture2.png"],
     "used_player": 2,
-    "used_enemies": [3],
+    "used_enemies": [1],
     "enemies": [
-        { "id": 3, "pos": { "x": 0, "y": 0 } }
+        { "id": 1, "pos": { "x": 0, "y": 0 } }
     ],
     "init_pos": {"x": 4, "y": 0},
     "cells": [

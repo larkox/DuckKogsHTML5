@@ -30,10 +30,11 @@ function initBomb(map, pos) {
     bomb.state = 0;
     bomb.frame_count = 0;
     bomb.pos = {"x": pos.x, "y": pos.y};
-    bomb.animate = function(state) {
+    bomb.animate = function(environment, state) {
         this.frame_count += 1;
         if (this.frame_count == 100) {
             explode(state, this.pos);
+            playSound(environment, constants.SOUND_BOMB_EXPLODE);
             state.objects.splice(state.objects.indexOf(this),1);
             return 1;
         }
@@ -74,7 +75,7 @@ function initExplosion(map, pos) {
     explosion.state = 0;
     explosion.frame_count = 0;
     explosion.pos = {"x": pos.x, "y": pos.y};
-    explosion.animate = function(state) {
+    explosion.animate = function(environment, state) {
         this.frame_count += 1;
         if (this.frame_count == 100) {
             state.damages.splice(state.damages.indexOf(this),1);

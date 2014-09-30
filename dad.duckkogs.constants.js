@@ -17,4 +17,15 @@ constants = {
     "KOG_ID": 0,
     "BOMB_ID": 1,
     "EXPLOSION_ID": 2,
+
+    "SOUND_PLAYER_WALK": 0,
+    "SOUND_BOMB_DROP": 1,
+    "SOUND_BOMB_EXPLODE": 2,
+    "SOUND_KOG_GET": 3,
+    "SOUND_BOMBER_WALK": 4,
+    "SOUND_FAST_WALK": 5,
+    "SOUND_FAST_RUN": 6,
+    "SOUND_ANGRY_WALK": 7,
+
+    "MENU": ["new_game", "select_level", "highscore"],
 }

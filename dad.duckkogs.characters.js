@@ -1,5 +1,6 @@
 function initPlayer(map) {
     var player = {};
+    player.alive = true;
     player.direction = 0;
     player.state = 0;
     player.frame_count = 0;
@@ -19,6 +20,7 @@ function initPlayer(map) {
                     if (state.kogs[this.pos.y][this.pos.x]) {
                         state.kogs[this.pos.y][this.pos.x] = null;
                         state.remaining_kogs -= 1;
+                        playSound(environment, constants.SOUND_KOG_GET);
                     }
                 }
             }
@@ -30,12 +32,21 @@ function initPlayer(map) {
             if ((this.frame_count % 10) == 0) {
                 this.state = (this.state + 1) % 2;
             }
+            if (hasDamage(state, this.pos)) {
+                this.alive = false;
+                return;
+            }
+            if (state.map.cells[this.pos.y][this.pos.x].occupied) {
+                this.alive = false;
+                return;
+            }
             var current_pos;
             if (environment.is_pressed[constants.KEY_UP]) {
                 current_pos = this.pos;
                 if (state.map.cells[current_pos.y][current_pos.x].up) {
                     this.pos.y = (this.pos.y - 1 + state.map.height) % state.map.height;
                     this.moving = true;
+                    playSound(environment, constants.SOUND_PLAYER_WALK);
                 }
                 this.direction = constants.UP;
             }
@@ -44,6 +55,7 @@ function initPlayer(map) {
                 if (state.map.cells[current_pos.y][current_pos.x].down) {
                     this.pos.y = (this.pos.y + 1 + state.map.height) % state.map.height;
                     this.moving = constants.DOWN;
+                    playSound(environment, constants.SOUND_PLAYER_WALK);
                 }
                 this.direction = 2;
             }
@@ -52,6 +64,7 @@ function initPlayer(map) {
                 if (state.map.cells[current_pos.y][current_pos.x].left) {
                     this.pos.x = (this.pos.x - 1 + state.map.width) % state.map.width;
                     this.moving = true;
+                    playSound(environment, constants.SOUND_PLAYER_WALK);
                 }
                 this.direction = constants.LEFT;
             }
@@ -60,12 +73,30 @@ function initPlayer(map) {
                 if (state.map.cells[current_pos.y][current_pos.x].right) {
                     this.pos.x = (this.pos.x + 1 + state.map.width) % state.map.width;
                     this.moving = true;
+                    playSound(environment, constants.SOUND_PLAYER_WALK);
                 }
                 this.direction = constants.RIGHT;
             }
         }
     }
     return player;
+}
+
+function hasDamage(state, pos) {
+    for (var index = 0; index < state.damages.length; index++) {
+        if (state.damages[index].pos.x === pos.x &&
+           state.damages[index].pos.y === pos.y) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function playSound(environment, index) {
+    var source = environment.sound_context.createBufferSource();
+    source.buffer = environment.sounds[index].sound;
+    source.connect(environment.sound_context.destination);
+    source.start(0);
 }
 
 function drawSprite(environment, state) {
@@ -206,6 +237,7 @@ function initEnemies(map) {
         enemy.animate = assignAction(map.enemies[index].id);
         enemy.texture = map.enemies_images[map.enemies[index].id];
         enemy.draw = drawSprite;
+        map.cells[enemy.pos.y][enemy.pos.x].occupied = true;
         enemy_list[index] = enemy;
     }
     return enemy_list;
@@ -225,7 +257,7 @@ function assignAction(id) {
     }
 }
 
-function bomberAction(state) {
+function bomberAction(environment, state) {
     this.frame_count += 1;
     if (this.moving) {
         if ((this.frame_count % 2) == 0) {
@@ -241,15 +273,16 @@ function bomberAction(state) {
     }
     else {
         if ((this.frame_count % 25) == 0 && Math.random() > 0.8) {
-            moveRandom(this, state.map);
+            moveRandom(this, state.map, environment, constants.SOUND_BOMBER_WALK);
         }
-        if ((this.frame_count % 50) == 0 && Math.random() > 0.5) {
+        else if ((this.frame_count % 50) == 0 && Math.random() > 0.5) {
+            playSound(environment, constants.SOUND_BOMB_DROP);
             state.objects.push(initBomb(state.map, this.pos));
         }
     }
 }
 
-function angryAction(state) {
+function angryAction(environment, state) {
     this.frame_count += 1;
     if (this.moving) {
         if ((this.frame_count % 2) == 0) {
@@ -353,7 +386,7 @@ function potentialMap(state) {
 
 
 
-function fastAction(state) {
+function fastAction(environment, state) {
     this.frame_count += 1;
     if (this.moving) {
         if (this.running) {
@@ -383,12 +416,14 @@ function fastAction(state) {
                 this.moving = true;
                 this.running = true;
                 this.direction = constants.UP;
+                playSound(environment, constants.SOUND_FAST_RUN);
             }
             else if (down) {
                 this.pos.y = (this.pos.y + 1) % state.map.height;
                 this.moving = true;
                 this.running = true;
                 this.direction = constants.DOWN;
+                playSound(environment, constants.SOUND_FAST_RUN);
             }
         }
         else if (this.pos.y == state.player.pos.y) {
@@ -399,55 +434,69 @@ function fastAction(state) {
                 this.moving = true;
                 this.running = true;
                 this.direction = constants.LEFT;
+                playSound(environment, constants.SOUND_FAST_RUN);
             }
             else if (right) {
                 this.pos.x = (this.pos.x + 1) % state.map.width;
                 this.moving = true;
                 this.running = true;
                 this.direction = constants.RIGHT;
+                playSound(environment, constants.SOUND_FAST_RUN);
             }
         }
         if (!this.moving && (this.frame_count % 10 == 0) && Math.random() > 0.8) {
-            moveRandom(this, state.map);
+            moveRandom(this, state.map, environment, constants.SOUND_FAST_WALK);
         }
     }
 }
 
-function moveRandom(sprite, map) {
+function moveRandom(sprite, map, environment, sound) {
     var direction = Math.floor(Math.random() * 4);
     var new_pos;
     switch (direction) {
         case constants.UP:
             new_pos = (sprite.pos.y - 1 + map.height) % map.height;
             if (map.cells[sprite.pos.y][sprite.pos.x].up && !map.cells[new_pos][sprite.pos.x].occupied) {
+                map.cells[sprite.pos.y][sprite.pos.x].occupied = false;
                 sprite.pos.y = new_pos;
+                map.cells[sprite.pos.y][sprite.pos.x].occupied = true;
                 sprite.moving = true;
-                sprite.direction = constants.UP;
+                playSound(environment, sound);
             }
+            sprite.direction = constants.UP;
             break;
         case constants.DOWN:
             new_pos = (sprite.pos.y + 1) % map.height;
             if (map.cells[sprite.pos.y][sprite.pos.x].down && !map.cells[new_pos][sprite.pos.x].occupied) {
+                map.cells[sprite.pos.y][sprite.pos.x].occupied = false;
                 sprite.pos.y = new_pos;
+                map.cells[sprite.pos.y][sprite.pos.x].occupied = true;
                 sprite.moving = true;
-                sprite.direction = constants.DOWN;
+                playSound(environment, sound);
             }
+            sprite.direction = constants.DOWN;
             break;
         case constants.LEFT:
             new_pos = (sprite.pos.x - 1 + map.width) % map.width;
             if (map.cells[sprite.pos.y][sprite.pos.x].left && !map.cells[sprite.pos.y][new_pos].occupied) {
+                map.cells[sprite.pos.y][sprite.pos.x].occupied = false;
                 sprite.pos.x = new_pos;
+                map.cells[sprite.pos.y][sprite.pos.x].occupied = true;
                 sprite.moving = true;
-                sprite.direction = constants.LEFT;
+                playSound(environment, sound);
             }
+            sprite.direction = constants.LEFT;
             break;
         case constants.RIGHT:
             new_pos = (sprite.pos.x + 1) % map.width;
             if (map.cells[sprite.pos.y][sprite.pos.x].right && !map.cells[sprite.pos.y][new_pos].occupied) {
+                map.cells[sprite.pos.y][sprite.pos.x].occupied = false;
                 sprite.pos.x = new_pos;
+                map.cells[sprite.pos.y][sprite.pos.x].occupied = true;
                 sprite.moving = true;
-                sprite.direction = constants.RIGHT;
+                playSound(environment, sound);
             }
+            sprite.direction = constants.RIGHT;
             break;
     }
 }
